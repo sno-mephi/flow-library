@@ -61,11 +61,13 @@ class FlowBuilder {
         flowContext: FlowContext = FlowContext(),
         vararg objectsToReset: Any,
     ) {
-        val flowJob = CoroutineScope(Dispatchers.Default).launch {
-            initAndRun(
-                flowContext = flowContext,
-                objectsToReset = objectsToReset,
-            )
+        val flowJob = coroutineScope {
+            launch {
+                initAndRun(
+                    flowContext = flowContext,
+                    objectsToReset = objectsToReset,
+                )
+            }
         }
 
         flowJob.join()
