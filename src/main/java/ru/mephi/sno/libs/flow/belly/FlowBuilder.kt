@@ -63,7 +63,7 @@ class FlowBuilder {
     ) {
         runBlocking {
             val flowJob = launch {
-                initAndRun(
+                initAndRunAsync(
                     flowContext = flowContext,
                     objectsToReset = objectsToReset,
                 )
