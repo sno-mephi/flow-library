@@ -55,7 +55,9 @@ open class GeneralFetcher {
                         }
                     }
 
-                log.warn("Flow contains non-cloneable objects: $nonCloneableObjects. Inject original instead")
+                if (nonCloneableObjects.isNotEmpty()) {
+                    log.warn("Flow contains non-cloneable objects: $nonCloneableObjects. Inject original instead")
+                }
 
                 val result = method.call(this, *params.toTypedArray())
                 result?.let { flowContext.insertObject(result) }
