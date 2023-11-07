@@ -1,9 +1,6 @@
 package ru.mephi.sno.libs.flow.belly
 
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import org.slf4j.LoggerFactory
 import ru.mephi.sno.libs.flow.fetcher.GeneralFetcher
 
@@ -58,12 +55,27 @@ class FlowBuilder {
         currentNode.addFetcher(fetcherInstance)
     }
 
-    /**
-     * Инициализация и запуск графа
-     */
+    // Инициализация и запуск графа с ожиданием окончания выполнения
+    // TODO: настройка диспетчера корутин??
     suspend fun initAndRun(
-        node: FlowNode = currentNode,
-        flowContext: FlowContext,
+        flowContext: FlowContext = FlowContext(),
+        vararg objectsToReset: Any,
+    ) {
+        val flowJob = CoroutineScope(Dispatchers.Default).launch {
+            initAndRun(
+                flowContext = flowContext,
+                objectsToReset = objectsToReset,
+            )
+        }
+
+        flowJob.join()
+    }
+
+    /**
+     * Асинхронная инициализация и запуск графа
+     */
+    suspend fun initAndRunAsync(
+        flowContext: FlowContext = FlowContext(),
         vararg objectsToReset: Any,
     ) {
         objectsToReset.forEach {
@@ -73,7 +85,7 @@ class FlowBuilder {
                 flowContext.insertObject(it)
             }
         }
-        run(node, flowContext)
+        run(currentNode, flowContext)
     }
 
     /**
