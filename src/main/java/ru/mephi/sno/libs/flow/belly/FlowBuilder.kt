@@ -57,20 +57,20 @@ class FlowBuilder {
 
     // Инициализация и запуск графа с ожиданием окончания выполнения
     // TODO: настройка диспетчера корутин??
-    suspend fun initAndRun(
+    fun initAndRun(
         flowContext: FlowContext = FlowContext(),
         vararg objectsToReset: Any,
     ) {
-        val flowJob = coroutineScope {
-            launch {
+        runBlocking {
+            val flowJob = launch {
                 initAndRun(
                     flowContext = flowContext,
                     objectsToReset = objectsToReset,
                 )
             }
-        }
 
-        flowJob.join()
+            flowJob.join()
+        }
     }
 
     /**
