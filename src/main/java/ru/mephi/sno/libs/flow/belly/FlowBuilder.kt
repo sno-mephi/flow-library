@@ -56,15 +56,17 @@ class FlowBuilder {
     }
 
     // Инициализация и запуск графа с ожиданием окончания выполнения
-    // TODO: настройка диспетчера корутин??
     fun initAndRun(
         flowContext: FlowContext = FlowContext(),
+        dispatcher: CoroutineDispatcher = Dispatchers.Default,
         vararg objectsToReset: Any,
     ) {
         runBlocking {
-            val flowJob = launch {
+            // TODO: подумать. может создавать джобу - лишнее? мы же уже сидим внутри скоупа
+            val flowJob = launch(dispatcher) {
                 initAndRunAsync(
                     flowContext = flowContext,
+                    dispatcher = dispatcher,
                     objectsToReset = objectsToReset,
                 )
             }
@@ -78,6 +80,7 @@ class FlowBuilder {
      */
     suspend fun initAndRunAsync(
         flowContext: FlowContext = FlowContext(),
+        dispatcher: CoroutineDispatcher = Dispatchers.Default,
         vararg objectsToReset: Any,
     ) {
         objectsToReset.forEach {
@@ -87,7 +90,7 @@ class FlowBuilder {
                 flowContext.insertObject(it)
             }
         }
-        run(currentNode, flowContext)
+        run(currentNode, flowContext, dispatcher)
     }
 
     /**
@@ -97,38 +100,45 @@ class FlowBuilder {
     private suspend fun run(
         node: FlowNode = currentNode,
         flowContext: FlowContext,
+        dispatcher: CoroutineDispatcher
     ) {
-        coroutineScope {
-            val toRun = mutableListOf<Any>()
+        withContext(dispatcher) {
+            val toRunParallel = mutableListOf<Any>()
             node.children.forEach { children ->
                 // TODO: NodeType.FETCHER гарантирует ненулевой фетчер
-                if (children.nodeType == NodeType.FETCHER) {
-                    toRun.add(children.fetcher!!)
-                } else if (children.nodeType == NodeType.GROUP) {
-                    toRun.add(children)
-                } else if (children.nodeType == NodeType.WAIT) {
-                    val completedRun = toRun.map {
-                        async {
-                            when (it) {
-                                is GeneralFetcher -> it.fetchMechanics(flowContext)
-                                is FlowNode -> if (it.condition.invoke(flowContext)) run(it, flowContext)
+                when (children.nodeType) {
+                    NodeType.FETCHER -> toRunParallel.add(children.fetcher!!)
+                    NodeType.GROUP -> toRunParallel.add(children)
+                    NodeType.WAIT -> {
+                        val completedRun = toRunParallel.map {
+                            async (dispatcher) {
+                                resolveRunMechanics(it, flowContext, dispatcher)
                             }
                         }
-                    }
-                    completedRun.awaitAll()
-                    toRun.clear()
-                    toRun.add(children)
-                }
-            }
-            toRun.forEach {
-                launch {
-                    when (it) {
-                        is GeneralFetcher -> it.fetchMechanics(flowContext)
-                        is FlowNode -> if (it.condition.invoke(flowContext)) run(it, flowContext)
+                        completedRun.awaitAll()
+                        toRunParallel.clear()
+                        toRunParallel.add(children)
                     }
                 }
             }
-            toRun.clear()
+            toRunParallel.forEach {
+                launch (dispatcher) {
+                    resolveRunMechanics(it, flowContext, dispatcher)
+                }
+            }
+            toRunParallel.clear()
         }
     }
+
+    private suspend inline fun resolveRunMechanics(
+        objectToResolve: Any,
+        flowContext: FlowContext,
+        dispatcher: CoroutineDispatcher,
+    ) {
+        when (objectToResolve) {
+            is GeneralFetcher -> objectToResolve.fetchMechanics(flowContext)
+            is FlowNode -> if (objectToResolve.condition.invoke(flowContext)) run(objectToResolve, flowContext, dispatcher)
+        }
+    }
+
 }
