@@ -34,6 +34,19 @@ class FlowBuilder {
     }
 
     /**
+     * Объединяет группу узлов, выполняет их последовательно
+     */
+    fun sequence(
+        condition: (FlowContext) -> Boolean = { true },
+        action: () -> Unit,
+    ) {
+        val lastStateNode = currentNode
+        currentNode = currentNode.addSequenceNode(condition)
+        action()
+        currentNode = lastStateNode
+    }
+
+    /**
      * Объединяет группу узлов. Запускается после того, как выполнятся все верхние узлы
      */
     fun whenComplete(
@@ -102,30 +115,35 @@ class FlowBuilder {
         dispatcher: CoroutineDispatcher,
     ) {
         withContext(dispatcher) {
-            val toRunParallel = mutableListOf<Any>()
+            val toRun = mutableListOf<Any>()
+            val currentNodeType = node.nodeType
             node.children.forEach { children ->
                 // TODO: NodeType.FETCHER гарантирует ненулевой фетчер
                 when (children.nodeType) {
-                    NodeType.FETCHER -> toRunParallel.add(children.fetcher!!)
-                    NodeType.GROUP -> toRunParallel.add(children)
+                    NodeType.FETCHER -> toRun.add(children.fetcher!!)
+                    NodeType.GROUP, NodeType.SEQUENCE -> toRun.add(children)
                     NodeType.WAIT -> {
-                        val completedRun = toRunParallel.map {
+                        val completedRun = toRun.map {
                             async(dispatcher) {
                                 resolveRunMechanics(it, flowContext, dispatcher)
+                            }.also {
+                                if (currentNodeType == NodeType.SEQUENCE) it.await()
                             }
                         }
                         completedRun.awaitAll()
-                        toRunParallel.clear()
-                        toRunParallel.add(children)
+                        toRun.clear()
+                        toRun.add(children)
                     }
                 }
             }
-            toRunParallel.forEach {
+            toRun.forEach {
                 launch(dispatcher) {
                     resolveRunMechanics(it, flowContext, dispatcher)
+                }.also {
+                    if (currentNodeType == NodeType.SEQUENCE) it.join()
                 }
             }
-            toRunParallel.clear()
+            toRun.clear()
         }
     }
 
