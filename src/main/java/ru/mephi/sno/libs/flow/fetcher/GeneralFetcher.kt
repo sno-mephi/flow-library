@@ -19,7 +19,7 @@ import kotlin.reflect.jvm.javaType
 open class GeneralFetcher {
 
     companion object {
-        private val log = LoggerFactory.getLogger(this.javaClass)
+        private val log = LoggerFactory.getLogger(GeneralFetcher::class.java)
     }
 
     /**

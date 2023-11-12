@@ -70,7 +70,6 @@ class FlowBuilder {
                     objectsToReset = objectsToReset,
                 )
             }
-
             flowJob.join()
         }
     }
@@ -100,7 +99,7 @@ class FlowBuilder {
     private suspend fun run(
         node: FlowNode = currentNode,
         flowContext: FlowContext,
-        dispatcher: CoroutineDispatcher
+        dispatcher: CoroutineDispatcher,
     ) {
         withContext(dispatcher) {
             val toRunParallel = mutableListOf<Any>()
@@ -111,7 +110,7 @@ class FlowBuilder {
                     NodeType.GROUP -> toRunParallel.add(children)
                     NodeType.WAIT -> {
                         val completedRun = toRunParallel.map {
-                            async (dispatcher) {
+                            async(dispatcher) {
                                 resolveRunMechanics(it, flowContext, dispatcher)
                             }
                         }
@@ -122,7 +121,7 @@ class FlowBuilder {
                 }
             }
             toRunParallel.forEach {
-                launch (dispatcher) {
+                launch(dispatcher) {
                     resolveRunMechanics(it, flowContext, dispatcher)
                 }
             }
@@ -140,5 +139,4 @@ class FlowBuilder {
             is FlowNode -> if (objectToResolve.condition.invoke(flowContext)) run(objectToResolve, flowContext, dispatcher)
         }
     }
-
 }
