@@ -12,10 +12,13 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.slf4j:slf4j-api:2.0.9'
+    implementation 'org.slf4j:slf4j-simple:2.0.9'
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3'
     implementation "org.jetbrains.kotlin:kotlin-reflect:1.9.10"
     implementation 'org.apache.commons:commons-lang3:3.13.0'
+
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.10.1'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.10.1'
 }
 
 kotlin {
@@ -42,4 +45,8 @@ publishing {
             from components.java
         }
     }
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
 }
