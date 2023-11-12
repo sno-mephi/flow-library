@@ -180,6 +180,110 @@ class FlowBuilderTest {
         assertEquals("And we are obliged to be born..", testFetcherWithValue2.byContext)
     }
 
+    @Test
+    fun `sequence() test without conditions and context`() {
+        val testFetcher1 = TimeTestFetcher("test-fetcher#1", pauseTime = 500)
+        val testFetcher2 = TimeTestFetcher("test-fetcher#2", pauseTime = 500)
+        val testFetcher3 = TimeTestFetcher("test-fetcher#3", pauseTime = 500)
+        val testFetcher4 = TimeTestFetcher("test-fetcher#4", pauseTime = 500)
+        val testFetcher5 = TimeTestFetcher("test-fetcher#5", pauseTime = 500)
+        val testFlowBuilder = FlowBuilder()
+
+        fun FlowBuilder.buildFlow() {
+            sequence {
+                fetch(testFetcher1)
+                fetch(testFetcher2)
+                fetch(testFetcher3)
+                fetch(testFetcher4)
+                fetch(testFetcher5)
+            }
+        }
+        testFlowBuilder.buildFlow()
+
+        val elapsedTime = runWithTimer {
+            testFlowBuilder.initAndRun()
+        }
+        assertTrue(elapsedTime > 2500)
+        assertTrue(elapsedTime < 3500)
+    }
+
+    @Test
+    fun `sequence() + when() test without conditions and context`() {
+        val testFetcher1 = TimeTestFetcher("test-fetcher#1", pauseTime = 500)
+        val testFetcher2 = TimeTestFetcher("test-fetcher#2", pauseTime = 500)
+        val testFetcher3 = TimeTestFetcher("test-fetcher#3", pauseTime = 500)
+        val testFetcher4 = TimeTestFetcher("test-fetcher#4", pauseTime = 500)
+        val testFetcher5 = TimeTestFetcher("test-fetcher#5", pauseTime = 500)
+        val testFetcher6 = TimeTestFetcher("test-fetcher#6", pauseTime = 500)
+        val testFlowBuilder = FlowBuilder()
+
+        // по-хорошему, так писать плохо; смысл от этого whenComplete?
+        fun FlowBuilder.buildFlow() {
+            sequence {
+                fetch(testFetcher1)
+                fetch(testFetcher2)
+                fetch(testFetcher3)
+                fetch(testFetcher4)
+                fetch(testFetcher5)
+                whenComplete {
+                    fetch(testFetcher6)
+                }
+            }
+        }
+        testFlowBuilder.buildFlow()
+
+        val elapsedTime = runWithTimer {
+            testFlowBuilder.initAndRun()
+        }
+        assertTrue(elapsedTime > 3000)
+        assertTrue(elapsedTime < 4000)
+    }
+
+    @Test
+    fun `the order of execution sequence() must be consistent`() {
+        class TestFetcher(
+            val num: Int,
+        ) : GeneralFetcher() {
+            @InjectData
+            fun doFetch(str: String): String {
+                val newStrVal = str + "$num"
+                log.info("new str in flow-context: $newStrVal)")
+                return newStrVal
+            }
+        }
+
+        val testFetcher1 = TestFetcher(1)
+        val testFetcher2 = TestFetcher(2)
+        val testFetcher3 = TestFetcher(3)
+        val testFetcher4 = TestFetcher(4)
+        val testFetcher5 = TestFetcher(5)
+        val testFlowBuilder = FlowBuilder()
+
+        val flowContext = FlowContext()
+
+        fun FlowBuilder.buildFlow() {
+            sequence {
+                fetch(testFetcher1)
+                fetch(testFetcher2)
+                fetch(testFetcher3)
+                fetch(testFetcher4)
+                fetch(testFetcher5)
+            }
+        }
+        testFlowBuilder.buildFlow()
+
+        testFlowBuilder.initAndRun(
+            flowContext,
+            Dispatchers.Default,
+            "",
+        )
+
+        assertEquals(
+            flowContext.get<String>(),
+            "12345",
+        )
+    }
+
     /** Выполняет задачу и возвращает время выполнения**/
     private fun runWithTimer(
         action: () -> Any,
