@@ -68,4 +68,13 @@ class FlowNode(
             condition = condition,
         )
     }
+
+    internal fun addSequenceNode(
+        condition: (FlowContext) -> Boolean,
+    ): FlowNode {
+        return addWGNode(
+            nodeType = NodeType.SEQUENCE,
+            condition = condition,
+        )
+    }
 }

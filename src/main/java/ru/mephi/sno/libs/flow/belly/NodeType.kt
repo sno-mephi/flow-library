@@ -19,4 +19,9 @@ enum class NodeType {
      * Выполняющий узел; fetcher != null
      */
     FETCHER,
+
+    /**
+     * Узел, запускающий все дочерние узлы последовательно; fetcher = null
+     */
+    SEQUENCE,
 }
