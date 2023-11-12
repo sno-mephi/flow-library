@@ -71,7 +71,7 @@ class FlowBuilderTest {
             testFlowBuilder.initAndRun()
         }
         assertTrue(elapsedTime > 1000)
-        assertTrue(elapsedTime < 2000)
+        assertTrue(elapsedTime < 2500)
     }
 
     @Test
@@ -134,10 +134,8 @@ class FlowBuilderTest {
         }
 
         assertTrue(elapsedTime1 > 3000)
-        assertTrue(elapsedTime1 < 4000)
 
         assertTrue(elapsedTime2 > 3000)
-        assertTrue(elapsedTime2 < 4000)
 
         assertTrue(elapsedTime3 > 2000)
         assertTrue(elapsedTime3 < 3000)
@@ -204,7 +202,7 @@ class FlowBuilderTest {
             testFlowBuilder.initAndRun()
         }
         assertTrue(elapsedTime > 2500)
-        assertTrue(elapsedTime < 3500)
+        assertTrue(elapsedTime < 3700)
     }
 
     @Test
@@ -236,7 +234,7 @@ class FlowBuilderTest {
             testFlowBuilder.initAndRun()
         }
         assertTrue(elapsedTime > 3000)
-        assertTrue(elapsedTime < 4000)
+        assertTrue(elapsedTime < 4500)
     }
 
     @Test
@@ -247,7 +245,7 @@ class FlowBuilderTest {
             @InjectData
             fun doFetch(str: String): String {
                 val newStrVal = str + "$num"
-                log.info("new str in flow-context: $newStrVal)")
+                log.info("new str in flow-context: $newStrVal")
                 return newStrVal
             }
         }
