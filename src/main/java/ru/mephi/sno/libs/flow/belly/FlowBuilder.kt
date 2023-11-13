@@ -124,27 +124,30 @@ class FlowBuilder {
                     NodeType.GROUP, NodeType.SEQUENCE -> toRun.add(children)
                     NodeType.WAIT -> {
                         val completedRun = toRun.map {
-                            async(dispatcher) {
-                                resolveRunMechanics(it, flowContext, dispatcher)
-                            }.also {
-                                if (currentNodeType == NodeType.SEQUENCE) it.await()
-                            }
+                            launchWithResolveMechanics(it, flowContext, currentNodeType, dispatcher)
                         }
-                        completedRun.awaitAll()
+                        completedRun.joinAll()
                         toRun.clear()
                         toRun.add(children)
                     }
                 }
             }
             toRun.forEach {
-                launch(dispatcher) {
-                    resolveRunMechanics(it, flowContext, dispatcher)
-                }.also {
-                    if (currentNodeType == NodeType.SEQUENCE) it.join()
-                }
+                launchWithResolveMechanics(it, flowContext, currentNodeType, dispatcher)
             }
             toRun.clear()
         }
+    }
+
+    private suspend inline fun CoroutineScope.launchWithResolveMechanics(
+        job: Any,
+        flowContext: FlowContext,
+        currentNodeType: NodeType,
+        dispatcher: CoroutineDispatcher,
+    ) = launch(dispatcher) {
+        resolveRunMechanics(job, flowContext, dispatcher)
+    }.also {
+        if (currentNodeType == NodeType.SEQUENCE) it.join()
     }
 
     private suspend inline fun resolveRunMechanics(
