@@ -27,44 +27,53 @@ open class GeneralFetcher {
      * внедряя в него нужные бины из контекста
      */
     fun fetchMechanics(flowContext: FlowContext) {
-        val methods = this::class.declaredMemberFunctions
+        // получаем все методы с аннотацией @InjectData
+        val methods = this::class.declaredMemberFunctions.filter { it.hasAnnotation<InjectData>() }
 
-        // TODO: обработать случай когда методов несколько (ошибка)
-        for (method in methods) {
-            if (method.hasAnnotation<InjectData>()) {
-                val paramTypes = method.parameters
-                    .map { it.type.javaType as Class<*> }
-
-                val nonCloneableObjects = mutableListOf<Any>()
-                val params = mutableListOf<Any?>()
-                paramTypes
-                    .let { it.subList(1, it.size) }
-                    .forEach { paramType ->
-                        val injectedObject = flowContext.getBeanByType(paramType)
-                        // если мы отметили тип как изменяемый (@Mutable), то позволяем его менять во время выполнения
-                        if (paramType.kotlin.hasAnnotation<Mutable>()) {
-                            params.add(injectedObject)
-                        } else {
-                            params.add(
-                                clone(injectedObject),
-                            )
-
-                            if (injectedObject != null && !isCloneable(injectedObject)) {
-                                nonCloneableObjects.add(injectedObject)
-                            }
-                        }
-                    }
-
-                if (nonCloneableObjects.isNotEmpty()) {
-                    log.warn("Flow contains non-cloneable objects: $nonCloneableObjects. Inject original instead")
-                }
-
-                val result = method.call(this, *params.toTypedArray())
-                result?.let { flowContext.insertObject(result) }
-            }
+        if (methods.isEmpty()) {
+            throw NoSuchMethodException("can't find method with InjectData annotation in ${this::class}")
         }
+
+        if (methods.size > 1) {
+            throw NoSuchMethodException("too many methods with annotation InjectData in ${this::class}")
+        }
+
+        val doFetchMethod = methods.first()
+        val paramTypes = doFetchMethod.parameters
+            .map { it.type.javaType as Class<*> }
+        val nonCloneableObjects = mutableListOf<Any>()
+        val params = mutableListOf<Any?>()
+
+        paramTypes
+            .let { it.subList(1, it.size) }
+            .forEach { paramType ->
+                val injectedObject = flowContext.getBeanByType(paramType)
+                // если мы отметили тип как изменяемый (@Mutable), то позволяем его менять во время выполнения
+                if (paramType.kotlin.hasAnnotation<Mutable>()) {
+                    params.add(injectedObject)
+                } else {
+                    params.add(
+                        clone(injectedObject),
+                    )
+
+                    if (injectedObject != null && !isCloneable(injectedObject)) {
+                        nonCloneableObjects.add(injectedObject)
+                    }
+                }
+            }
+
+        if (nonCloneableObjects.isNotEmpty()) {
+            log.warn("Flow contains non-cloneable objects: $nonCloneableObjects. Inject original instead")
+        }
+
+        val fetchResult = doFetchMethod.call(this, *params.toTypedArray())
+        fetchResult?.let { flowContext.insertObject(it) }
     }
 
+    /**
+     * Клонирует объект, если это возможно (если от data class или Serializable). Возвращает его копию.
+     * Если невозможно склонировать - возвращает сам этот объект
+     */
     private fun <T : Any> clone(obj: T?): T? {
         obj ?: return null
 
