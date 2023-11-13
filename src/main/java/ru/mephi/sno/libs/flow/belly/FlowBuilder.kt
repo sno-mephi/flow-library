@@ -124,13 +124,13 @@ class FlowBuilder {
                     NodeType.GROUP, NodeType.SEQUENCE -> toRun.add(children)
                     NodeType.WAIT -> {
                         val completedRun = toRun.map {
-                            async(dispatcher) {
+                            launch(dispatcher) {
                                 resolveRunMechanics(it, flowContext, dispatcher)
                             }.also {
-                                if (currentNodeType == NodeType.SEQUENCE) it.await()
+                                if (currentNodeType == NodeType.SEQUENCE) it.join()
                             }
                         }
-                        completedRun.awaitAll()
+                        completedRun.joinAll()
                         toRun.clear()
                         toRun.add(children)
                     }
