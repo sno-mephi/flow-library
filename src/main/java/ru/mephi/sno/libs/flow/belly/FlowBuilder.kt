@@ -70,7 +70,7 @@ class FlowBuilder {
 
     // Инициализация и запуск графа с ожиданием окончания выполнения
     fun initAndRun(
-        flowContext: FlowContext = FlowContext(),
+        flowContext: FlowContext = FlowContext(), // если не указан контекст, создается пустой по умолчанию
         dispatcher: CoroutineDispatcher = Dispatchers.Default,
         vararg objectsToReset: Any,
     ) {
@@ -91,7 +91,7 @@ class FlowBuilder {
      * Асинхронная инициализация и запуск графа
      */
     suspend fun initAndRunAsync(
-        flowContext: FlowContext = FlowContext(),
+        flowContext: FlowContext = FlowContext(), // если не указан контекст, создается пустой по умолчанию
         dispatcher: CoroutineDispatcher = Dispatchers.Default,
         vararg objectsToReset: Any,
     ) {

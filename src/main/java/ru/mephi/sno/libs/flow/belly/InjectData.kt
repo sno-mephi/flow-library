@@ -5,5 +5,4 @@ package ru.mephi.sno.libs.flow.belly
  */
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.FUNCTION)
-// TODO: поддержать только на одном методе в классе
 annotation class InjectData
