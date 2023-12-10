@@ -72,6 +72,7 @@ class FlowBuilder {
     fun initAndRun(
         flowContext: FlowContext = FlowContext(), // если не указан контекст, создается пустой по умолчанию
         dispatcher: CoroutineDispatcher = Dispatchers.Default,
+        wait: Boolean = true,
         vararg objectsToReset: Any,
     ) {
         runBlocking {
@@ -83,7 +84,7 @@ class FlowBuilder {
                     objectsToReset = objectsToReset,
                 )
             }
-            flowJob.join()
+            if (wait) flowJob.join()
         }
     }
 
