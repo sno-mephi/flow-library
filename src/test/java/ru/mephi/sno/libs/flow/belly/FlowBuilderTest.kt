@@ -171,6 +171,7 @@ class FlowBuilderTest {
         testFlowBuilder2.initAndRun(
             FlowContext(),
             Dispatchers.Default,
+            true,
             "And we are obliged to be born..",
         )
 
@@ -273,6 +274,7 @@ class FlowBuilderTest {
         testFlowBuilder.initAndRun(
             flowContext,
             Dispatchers.Default,
+            false,
             "",
         )
 
