@@ -28,7 +28,7 @@ kotlin {
 }
 
 wrapper {
-    gradleVersion = '7.2'
+    gradleVersion = '8.2'
 }
 
 java {
