@@ -22,6 +22,10 @@ dependencies {
     testImplementation 'junit:junit:4.13.2'
 }
 
+wrapper {
+    gradleVersion = '8.2'
+}
+
 kotlin {
     jvmToolchain {
         languageVersion = JavaLanguageVersion.of(17) // Устанавливаем целевую версию для Kotlin
