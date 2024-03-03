@@ -40,6 +40,14 @@ java {
     withJavadocJar()
 }
 
+publishing {
+    publications {
+        maven(MavenPublication) {
+            from components.java
+        }
+    }
+}
+
 tasks.test {
     useJUnitPlatform()
 }
