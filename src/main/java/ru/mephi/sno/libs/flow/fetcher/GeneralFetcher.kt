@@ -6,6 +6,7 @@ import ru.mephi.sno.libs.flow.belly.FlowContext
 import ru.mephi.sno.libs.flow.belly.InjectData
 import ru.mephi.sno.libs.flow.belly.Mutable
 import java.io.Serializable
+import kotlin.reflect.KFunction
 import kotlin.reflect.full.declaredMemberFunctions
 import kotlin.reflect.full.hasAnnotation
 import kotlin.reflect.full.instanceParameter
@@ -66,8 +67,20 @@ open class GeneralFetcher {
             log.warn("Flow contains non-cloneable objects: $nonCloneableObjects. Inject original instead")
         }
 
-        val fetchResult = doFetchMethod.call(this, *params.toTypedArray())
+        val fetchResult = fetchCall(flowContext, doFetchMethod, params)
         fetchResult?.let { flowContext.insertObject(it) }
+    }
+
+    /**
+     * Метод для запуска фетчера
+     * Возвращает объект, который должен вернуться в контекст
+     */
+    open fun fetchCall(
+        flowContext: FlowContext,
+        doFetchMethod: KFunction<*>,
+        params: MutableList<Any?>,
+    ): Any? {
+        return doFetchMethod.call(this, *params.toTypedArray())
     }
 
     /**
