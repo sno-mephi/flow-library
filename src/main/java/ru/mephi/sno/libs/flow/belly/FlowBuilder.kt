@@ -7,7 +7,7 @@ import ru.mephi.sno.libs.flow.fetcher.GeneralFetcher
 /**
  * Основной класс для сборки и запуска графа
  */
-class FlowBuilder {
+open class FlowBuilder {
 
     companion object {
         private val log = LoggerFactory.getLogger(FlowBuilder::class.java)
