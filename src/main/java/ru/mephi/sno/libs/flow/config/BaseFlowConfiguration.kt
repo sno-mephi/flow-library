@@ -15,7 +15,7 @@ abstract class BaseFlowConfiguration {
     open fun flowBuilder(): FlowBuilder {
         val flowBuilder = FlowBuilder()
         flowBuilder.buildFlow()
-        FlowRegistry.getInstance().register(getName(), this.javaClass, flowBuilder)
+        FlowRegistry.getInstance().register(getName(), this::class.java, flowBuilder)
         return flowBuilder
     }
 
