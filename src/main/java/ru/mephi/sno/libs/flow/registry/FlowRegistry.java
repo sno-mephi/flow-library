@@ -46,6 +46,14 @@ public class FlowRegistry {
 		return flowBuilders.getByKey2(clazz);
 	}
 
+	public String getFlowName(Class<?> clazz) {
+		return flowBuilders.associateByKey2(clazz);
+	}
+
+	public Class<?> getFlowClass(String name) {
+		return flowBuilders.associateByKey1(name);
+	}
+
 	public List<String> getFlowNames() {
 		return List.copyOf(flowBuilders.key1Set());
 	}
