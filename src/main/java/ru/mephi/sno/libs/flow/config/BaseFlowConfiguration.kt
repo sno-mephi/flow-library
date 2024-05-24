@@ -6,7 +6,7 @@ import ru.mephi.sno.libs.flow.registry.FlowRegistry
 /**
  * Один из базовых способов создания flow.
  * Регистрирует ваш flow в FlowRegistry.
- * Может быть полезно в связке с аннотацией @Component из Spring Framework и инъекцией фетчеров.
+ * Может быть полезно в связке со Spring Framework и инъекцией фетчеров.
  */
 abstract class BaseFlowConfiguration {
 
@@ -15,7 +15,7 @@ abstract class BaseFlowConfiguration {
     open fun flowBuilder(): FlowBuilder {
         val flowBuilder = FlowBuilder()
         flowBuilder.buildFlow()
-        FlowRegistry.getInstance().register(getName(), flowBuilder)
+        FlowRegistry.getInstance().register(getName(), this.javaClass, flowBuilder)
         return flowBuilder
     }
 
