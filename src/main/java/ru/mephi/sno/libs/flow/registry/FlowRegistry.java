@@ -14,6 +14,7 @@ public class FlowRegistry {
 
 	private FlowRegistry() {
 		flowBuilders = new ConcurrentHashMap<>();
+		log.info("FlowRegistry initialized");
 	}
 
 	private static class FlowRegistrySingletonHolder {
