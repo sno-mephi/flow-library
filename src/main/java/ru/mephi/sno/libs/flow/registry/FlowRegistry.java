@@ -7,6 +7,8 @@ import ru.mephi.sno.libs.flow.util.ConcurrentDualKeyMap;
 
 import java.util.List;
 
+import static ru.mephi.sno.libs.flow.util.ClassUtils.classTransform;
+
 public class FlowRegistry {
 
 	private static final Logger log = LoggerFactory.getLogger(FlowRegistry.class);
@@ -53,9 +55,5 @@ public class FlowRegistry {
 
 	public List<String> getFlowNames() {
 		return List.copyOf(flowBuilders.key1Set());
-	}
-
-	private String classTransform(Class<?> clazz) {
-		return clazz.getSimpleName();
 	}
 }
