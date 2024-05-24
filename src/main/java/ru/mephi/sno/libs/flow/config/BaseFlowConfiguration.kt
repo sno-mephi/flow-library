@@ -10,10 +10,12 @@ import ru.mephi.sno.libs.flow.registry.FlowRegistry
  */
 abstract class BaseFlowConfiguration {
 
+    fun getName() = this::class.qualifiedName
+
     open fun flowBuilder(): FlowBuilder {
         val flowBuilder = FlowBuilder()
         flowBuilder.buildFlow()
-        FlowRegistry.getInstance().register(this::class.qualifiedName, flowBuilder)
+        FlowRegistry.getInstance().register(getName(), flowBuilder)
         return flowBuilder
     }
 
