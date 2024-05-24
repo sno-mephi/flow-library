@@ -32,10 +32,10 @@ public class FlowRegistry {
 			throw new IllegalArgumentException("FlowBuilder cannot be null");
 		if (clazz == null)
 			throw new IllegalArgumentException("Clazz cannot be null");
-		String canonicalName = clazz.getCanonicalName();
-		if (flowBuilders.containsKey(name, canonicalName))
-			throw new IllegalStateException("Flow already registered by name=" + name + ", class=" + canonicalName);
-		flowBuilders.put(name, canonicalName, flowBuilder);
+		String transformedName = classTransform(clazz);
+		if (flowBuilders.containsKey(name, transformedName))
+			throw new IllegalStateException("Flow already registered by name=" + name + ", class=" + transformedName);
+		flowBuilders.put(name, transformedName, flowBuilder);
 		log.info("Registered flow: {}", name);
 	}
 
@@ -44,24 +44,18 @@ public class FlowRegistry {
 	}
 
 	public FlowBuilder getFlow(Class<?> clazz) {
-		return flowBuilders.getByKey2(clazz.getCanonicalName());
+		return flowBuilders.getByKey2(classTransform(clazz));
 	}
 
 	public String getFlowName(Class<?> clazz) {
-		return flowBuilders.associateByKey2(clazz.getCanonicalName());
-	}
-
-	public Class<?> getFlowClass(String name) {
-		Class<?> result;
-		try {
-			result = Class.forName(flowBuilders.associateByKey1(name));
-		} catch (ClassNotFoundException e) {
-			throw new RuntimeException(e);
-		}
-		return result;
+		return flowBuilders.associateByKey2(classTransform(clazz));
 	}
 
 	public List<String> getFlowNames() {
 		return List.copyOf(flowBuilders.key1Set());
+	}
+
+	private String classTransform(Class<?> clazz) {
+		return clazz.getSimpleName();
 	}
 }
