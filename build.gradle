@@ -54,3 +54,7 @@ publishing {
 tasks.test {
     useJUnitPlatform()
 }
+
+tasks.named('generateMetadataFileForMavenJavaPublication') {
+    dependsOn('sourceJar')
+}
