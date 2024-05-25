@@ -38,11 +38,15 @@ java {
     }
 }
 
+def javaSources = tasks.register('sourceJar', Jar) {
+    from sourceSets.main.allJava
+}
+
 publishing {
     publications {
         mavenJava(MavenPublication) {
             from components.java
-            artifact tasks.sourceJar
+            artifact(javaSources)
         }
     }
 }
