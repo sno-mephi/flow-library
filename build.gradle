@@ -29,7 +29,7 @@ wrapper {
 
 kotlin {
     jvmToolchain {
-        languageVersion = JavaLanguageVersion.of(17) // Устанавливаем целевую версию для Kotlin
+        languageVersion = JavaLanguageVersion.of(17)
     }
 }
 
@@ -45,6 +45,7 @@ publishing {
     publications {
         maven(MavenPublication) {
             from components.java
+            artifact tasks.named('sourcesJar')
         }
     }
 }

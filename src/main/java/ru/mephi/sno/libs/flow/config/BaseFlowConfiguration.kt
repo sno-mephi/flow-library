@@ -11,13 +11,7 @@ import java.util.*
  */
 abstract class BaseFlowConfiguration {
 
-    companion object {
-        val guid: UUID by lazy { GuidHolder.INSTANCE }
-    }
-
-    private object GuidHolder {
-        val INSTANCE: UUID = UUID.randomUUID()
-    }
+    private val guid = UUID.randomUUID()
 
     open fun getName() = guid.toString()
 
