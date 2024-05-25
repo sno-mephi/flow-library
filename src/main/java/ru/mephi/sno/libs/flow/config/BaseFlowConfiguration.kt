@@ -2,7 +2,7 @@ package ru.mephi.sno.libs.flow.config
 
 import ru.mephi.sno.libs.flow.belly.FlowBuilder
 import ru.mephi.sno.libs.flow.registry.FlowRegistry
-import ru.mephi.sno.libs.flow.util.ClassUtils.classTransform
+import java.util.*
 
 /**
  * Один из базовых способов создания flow.
@@ -11,12 +11,16 @@ import ru.mephi.sno.libs.flow.util.ClassUtils.classTransform
  */
 abstract class BaseFlowConfiguration {
 
-    open fun getName() = classTransform(this::class.java)
+    private val guid: UUID = UUID.randomUUID()
+
+    fun getFlowGuid() = guid
+
+    open fun getName() = guid.toString()
 
     open fun flowBuilder(): FlowBuilder {
         val flowBuilder = FlowBuilder()
         flowBuilder.buildFlow()
-        FlowRegistry.getInstance().register(getName(), this::class.java, flowBuilder)
+        FlowRegistry.getInstance().register(getName(), guid, flowBuilder)
         return flowBuilder
     }
 

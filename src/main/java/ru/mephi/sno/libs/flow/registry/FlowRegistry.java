@@ -6,13 +6,12 @@ import ru.mephi.sno.libs.flow.belly.FlowBuilder;
 import ru.mephi.sno.libs.flow.util.ConcurrentDualKeyMap;
 
 import java.util.List;
-
-import static ru.mephi.sno.libs.flow.util.ClassUtils.classTransform;
+import java.util.UUID;
 
 public class FlowRegistry {
 
 	private static final Logger log = LoggerFactory.getLogger(FlowRegistry.class);
-	private final ConcurrentDualKeyMap<String, String, FlowBuilder> flowBuilders;
+	private final ConcurrentDualKeyMap<String, UUID, FlowBuilder> flowBuilders;
 
 	private FlowRegistry() {
 		flowBuilders = new ConcurrentDualKeyMap<>();
@@ -27,17 +26,16 @@ public class FlowRegistry {
 		return FlowRegistrySingletonHolder.HOLDER_INSTANCE;
 	}
 
-	public void register(String name, Class<?> clazz, FlowBuilder flowBuilder) {
+	public void register(String name, UUID guid, FlowBuilder flowBuilder) {
 		if (name == null || name.isEmpty())
 			throw new IllegalArgumentException("Flow name cannot be null or empty");
 		if (flowBuilder == null)
 			throw new IllegalArgumentException("FlowBuilder cannot be null");
-		if (clazz == null)
+		if (guid == null)
 			throw new IllegalArgumentException("Clazz cannot be null");
-		String transformedName = classTransform(clazz);
-		if (flowBuilders.containsKey(name, transformedName))
-			throw new IllegalStateException("Flow already registered by name=" + name + ", class=" + transformedName);
-		flowBuilders.put(name, transformedName, flowBuilder);
+		if (flowBuilders.containsKey(name, guid))
+			throw new IllegalStateException("Flow already registered by name=" + name + ", guid=" + guid);
+		flowBuilders.put(name, guid, flowBuilder);
 		log.info("Registered flow: {}", name);
 	}
 
@@ -45,12 +43,12 @@ public class FlowRegistry {
 		return flowBuilders.getByKey1(name);
 	}
 
-	public FlowBuilder getFlow(Class<?> clazz) {
-		return flowBuilders.getByKey2(classTransform(clazz));
+	public FlowBuilder getFlow(UUID guid) {
+		return flowBuilders.getByKey2(guid);
 	}
 
-	public String getFlowName(Class<?> clazz) {
-		return flowBuilders.associateByKey2(classTransform(clazz));
+	public String getFlowName(UUID guid) {
+		return flowBuilders.associateByKey2(guid);
 	}
 
 	public List<String> getFlowNames() {
