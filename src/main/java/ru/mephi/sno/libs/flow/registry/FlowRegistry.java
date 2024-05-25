@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.mephi.sno.libs.flow.belly.FlowBuilder;
 import ru.mephi.sno.libs.flow.util.ConcurrentDualKeyMap;
+import ru.mephi.sno.libs.flow.util.Helps;
 
 import java.util.List;
 import java.util.UUID;
@@ -11,7 +12,7 @@ import java.util.UUID;
 public class FlowRegistry {
 
 	private static final Logger log = LoggerFactory.getLogger(FlowRegistry.class);
-	private final ConcurrentDualKeyMap<String, UUID, FlowBuilder> flowBuilders;
+	private final ConcurrentDualKeyMap<String, String, FlowBuilder> flowBuilders;
 
 	private FlowRegistry() {
 		flowBuilders = new ConcurrentDualKeyMap<>();
@@ -26,16 +27,17 @@ public class FlowRegistry {
 		return FlowRegistrySingletonHolder.HOLDER_INSTANCE;
 	}
 
-	public void register(String name, UUID guid, FlowBuilder flowBuilder) {
+	public void register(String name, Class<?> clazz, FlowBuilder flowBuilder) {
+		String className = classTransformer(clazz);
 		if (name == null || name.isEmpty())
 			throw new IllegalArgumentException("Flow name cannot be null or empty");
 		if (flowBuilder == null)
 			throw new IllegalArgumentException("FlowBuilder cannot be null");
-		if (guid == null)
-			throw new IllegalArgumentException("Clazz cannot be null");
-		if (flowBuilders.containsKey(name, guid))
-			throw new IllegalStateException("Flow already registered by name=" + name + ", guid=" + guid);
-		flowBuilders.put(name, guid, flowBuilder);
+		if (className.isEmpty())
+			throw new IllegalArgumentException("Clazz cannot be empty");
+		if (flowBuilders.containsKey(name, className))
+			throw new IllegalStateException("Flow already registered by name=" + name + ", className=" + className);
+		flowBuilders.put(name, className, flowBuilder);
 		log.info("Registered flow: {}", name);
 	}
 
@@ -43,15 +45,19 @@ public class FlowRegistry {
 		return flowBuilders.getByKey1(name);
 	}
 
-	public FlowBuilder getFlow(UUID guid) {
-		return flowBuilders.getByKey2(guid);
+	public FlowBuilder getFlow(Class<?> clazz) {
+		return flowBuilders.getByKey2(classTransformer(clazz));
 	}
 
-	public String getFlowName(UUID guid) {
-		return flowBuilders.associateByKey2(guid);
+	public String getFlowName(Class<?> clazz) {
+		return flowBuilders.associateByKey2(classTransformer(clazz));
 	}
 
 	public List<String> getFlowNames() {
 		return List.copyOf(flowBuilders.key1Set());
+	}
+
+	private String classTransformer(Class<?> clazz) {
+		return Helps.classStringForm(clazz);
 	}
 }
