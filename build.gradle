@@ -33,10 +33,10 @@ kotlin {
 }
 
 java {
-    withSourcesJar()
     toolchain {
         languageVersion = JavaLanguageVersion.of(17)
     }
+    withSourcesJar()
 }
 
 publishing {
@@ -49,8 +49,4 @@ publishing {
 
 tasks.test {
     useJUnitPlatform()
-}
-
-java.toolchain {
-    languageVersion = JavaLanguageVersion.of(17)
 }
