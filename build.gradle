@@ -28,7 +28,7 @@ wrapper {
 
 kotlin {
     jvmToolchain {
-        languageVersion = JavaLanguageVersion.of(17) // Устанавливаем целевую версию для Kotlin
+        languageVersion = JavaLanguageVersion.of(17)
     }
 }
 
@@ -49,4 +49,8 @@ publishing {
 
 tasks.test {
     useJUnitPlatform()
+}
+
+java.toolchain {
+    languageVersion = JavaLanguageVersion.of(17)
 }
