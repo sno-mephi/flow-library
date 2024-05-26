@@ -19,9 +19,7 @@ import kotlin.reflect.jvm.javaType
  */
 open class GeneralFetcher {
 
-    companion object {
-        private val log = LoggerFactory.getLogger(GeneralFetcher::class.java)
-    }
+    private val log = LoggerFactory.getLogger(this::class.java)
 
     /**
      * Метод, который запускает метод помеченный как @InjectData,
