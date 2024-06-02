@@ -7,7 +7,6 @@ import ru.mephi.sno.libs.flow.util.ConcurrentDualKeyMap;
 import ru.mephi.sno.libs.flow.util.Helps;
 
 import java.util.List;
-import java.util.UUID;
 
 public class FlowRegistry {
 
