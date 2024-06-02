@@ -38,7 +38,17 @@ open class GeneralFetcher {
         }
 
         val doFetchMethod = methods.first()
-        val paramTypes = doFetchMethod.parameters
+        val params = getParamsFromFlow(doFetchMethod, flowContext)
+
+        val fetchResult = fetchCall(flowContext, doFetchMethod, params)
+        fetchResult?.let { flowContext.insertObject(it) }
+    }
+
+    protected fun getParamsFromFlow(
+        method: KFunction<*>,
+        flowContext: FlowContext,
+    ): MutableList<Any?> {
+        val paramTypes = method.parameters
             .map { it.type.javaType as Class<*> }
         val nonCloneableObjects = mutableListOf<Any>()
         val params = mutableListOf<Any?>()
@@ -52,7 +62,7 @@ open class GeneralFetcher {
                     params.add(injectedObject)
                 } else {
                     params.add(
-                        clone(injectedObject),
+                        tryToClone(injectedObject),
                     )
 
                     if (injectedObject != null && !isCloneable(injectedObject)) {
@@ -62,11 +72,14 @@ open class GeneralFetcher {
             }
 
         if (nonCloneableObjects.isNotEmpty()) {
-            log.warn("Flow contains non-cloneable objects: $nonCloneableObjects. Inject original instead")
+            log.warn(
+                "Flow contains non-cloneable objects: {}. Inject original instead into method {}",
+                nonCloneableObjects,
+                method.name,
+            )
         }
 
-        val fetchResult = fetchCall(flowContext, doFetchMethod, params)
-        fetchResult?.let { flowContext.insertObject(it) }
+        return params
     }
 
     /**
@@ -83,9 +96,10 @@ open class GeneralFetcher {
 
     /**
      * Клонирует объект, если это возможно (если от data class или Serializable). Возвращает его копию.
-     * Если невозможно склонировать - возвращает сам этот объект
+     * Если невозможно клонировать - возвращает сам этот объект
      */
-    private fun <T : Any> clone(obj: T?): T? {
+    @Suppress("UNCHECKED_CAST")
+    private fun <T : Any> tryToClone(obj: T?): T? {
         obj ?: return null
 
         return when {
