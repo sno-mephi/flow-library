@@ -289,7 +289,7 @@ class FlowBuilderTest {
     fun `initAndRun() with wait=false`() {
         class TestFetcher: GeneralFetcher() {
             @InjectData
-            fun doFetch(str: String) = "done"
+            fun doFetch() = "done"
         }
 
         val testFetcher = TestFetcher()
@@ -335,7 +335,7 @@ class FlowBuilderTest {
     fun `initAndRun() with wait=true`() {
         class TestFetcher: GeneralFetcher() {
             @InjectData
-            fun doFetch(str: String) = "done"
+            fun doFetch() = "done"
         }
 
         val testFetcher = TestFetcher()
