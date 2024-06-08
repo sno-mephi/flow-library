@@ -3,6 +3,7 @@ package ru.mephi.sno.libs.flow.belly
 import kotlinx.coroutines.*
 import org.slf4j.LoggerFactory
 import ru.mephi.sno.libs.flow.fetcher.GeneralFetcher
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * Основной класс для сборки и запуска графа
@@ -13,7 +14,7 @@ class FlowBuilder {
         private val log = LoggerFactory.getLogger(FlowBuilder::class.java)
     }
 
-    private var isRunning = false
+    private val flowRunsCount: AtomicInteger = AtomicInteger(0)
 
     private var currentNode: FlowNode = FlowNode(
         GeneralFetcher(),
@@ -22,7 +23,7 @@ class FlowBuilder {
         NodeType.GROUP,
     )
 
-    fun isRunning() = isRunning
+    fun isRunning() = flowRunsCount.get() != 0
 
     /**
      * Объединяет группу узлов
@@ -168,10 +169,10 @@ class FlowBuilder {
     }
 
     protected fun beforeRun() {
-        isRunning = true
+        flowRunsCount.incrementAndGet()
     }
 
-    private fun afterRun() {
-        isRunning = false
+    protected fun afterRun() {
+        flowRunsCount.decrementAndGet()
     }
 }
