@@ -23,7 +23,14 @@ class FlowBuilder {
         NodeType.GROUP,
     )
 
+    /**
+     * Сколько инстансов графа сейчас выполняется
+     */
     fun flowRunsCount() = flowRunsCount.get()
+
+    /**
+     * Выполняется ли граф в текущий момент
+     */
     fun isRunning() = flowRunsCount() != 0
 
     /**
@@ -69,14 +76,14 @@ class FlowBuilder {
      * Выполняет фетчер
      */
     fun fetch(fetcherInstance: GeneralFetcher) {
-        // fetcherInstance.fetchMechanics() // вызывает метод фетчера, помеченный аннотацией @InjectData
-        // вызываться должно после построения графа!
         currentNode.addFetcher(fetcherInstance)
     }
 
-    // Инициализация и запуск графа с ожиданием окончания выполнения
+    /**
+     * Инициализация и запуск графа с ожиданием окончания выполнения
+     */
     fun initAndRun(
-        flowContext: FlowContext = FlowContext(), // если не указан контекст, создается пустой по умолчанию
+        flowContext: FlowContext = FlowContext(),
         dispatcher: CoroutineDispatcher = Dispatchers.Default,
         wait: Boolean = true,
         vararg objectsToReset: Any,
@@ -102,7 +109,7 @@ class FlowBuilder {
      * Асинхронная инициализация и запуск графа
      */
     suspend fun initAndRunAsync(
-        flowContext: FlowContext = FlowContext(), // если не указан контекст, создается пустой по умолчанию
+        flowContext: FlowContext = FlowContext(),
         dispatcher: CoroutineDispatcher = Dispatchers.Default,
         vararg objectsToReset: Any,
     ) {
