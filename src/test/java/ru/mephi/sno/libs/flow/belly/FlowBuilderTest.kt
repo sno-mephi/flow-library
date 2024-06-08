@@ -376,20 +376,25 @@ class FlowBuilderTest {
         flowBuilder.buildFlow()
 
         assertFalse(flowBuilder.isRunning())
+        assertEquals(flowBuilder.flowRunsCount(), 0)
 
         flowBuilder.initAndRun(
             wait = false
         )
-        runBlocking { delay(200) }
+        runBlocking { delay(100) }
         assertTrue(flowBuilder.isRunning())
+        assertEquals(flowBuilder.flowRunsCount(), 1)
 
         flowBuilder.initAndRun(
             wait = false
         )
+        runBlocking { delay(100) }
         assertTrue(flowBuilder.isRunning())
+        assertEquals(flowBuilder.flowRunsCount(), 2)
 
         runBlocking { delay(1500) }
         assertFalse(flowBuilder.isRunning())
+        assertEquals(flowBuilder.flowRunsCount(), 0)
     }
 
     /** Выполняет задачу и возвращает время выполнения**/
