@@ -364,6 +364,34 @@ class FlowBuilderTest {
         assertFalse(testFlowBuilder.isRunning())
     }
 
+    @Test
+    fun `correctness of isRunning() when asynchronously running flowBuilder multiple times`() {
+        val testFetcher = TimeTestFetcher("multiply-run test", 1000)
+        fun FlowBuilder.buildFlow() {
+            sequence {
+                fetch(testFetcher)
+            }
+        }
+        val flowBuilder = FlowBuilder()
+        flowBuilder.buildFlow()
+
+        assertFalse(flowBuilder.isRunning())
+
+        flowBuilder.initAndRun(
+            wait = false
+        )
+        runBlocking { delay(200) }
+        assertTrue(flowBuilder.isRunning())
+
+        flowBuilder.initAndRun(
+            wait = false
+        )
+        assertTrue(flowBuilder.isRunning())
+
+        runBlocking { delay(1500) }
+        assertFalse(flowBuilder.isRunning())
+    }
+
     /** Выполняет задачу и возвращает время выполнения**/
     private fun runWithTimer(
         action: () -> Any,
