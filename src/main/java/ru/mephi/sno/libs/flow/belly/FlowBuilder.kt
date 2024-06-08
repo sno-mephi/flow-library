@@ -70,23 +70,26 @@ class FlowBuilder {
 
     // Инициализация и запуск графа с ожиданием окончания выполнения
     fun initAndRun(
-        flowContext: FlowContext = FlowContext(), // если не указан контекст, создается пустой по умолчанию
+        flowContext: FlowContext = FlowContext(),
         dispatcher: CoroutineDispatcher = Dispatchers.Default,
         wait: Boolean = true,
         vararg objectsToReset: Any,
     ) {
-        runBlocking {
-            // TODO: подумать. может создавать джобу - лишнее? мы же уже сидим внутри скоупа
-            val flowJob = launch(dispatcher) {
-                initAndRunAsync(
-                    flowContext = flowContext,
-                    dispatcher = dispatcher,
-                    objectsToReset = objectsToReset,
-                )
+        val scope = CoroutineScope(dispatcher)
+        val flowJob = scope.launch {
+            initAndRunAsync(
+                flowContext = flowContext,
+                dispatcher = dispatcher,
+                objectsToReset = objectsToReset,
+            )
+        }
+        if (wait) {
+            scope.launch {
+                flowJob.join()
             }
-            if (wait) flowJob.join()
         }
     }
+
 
     /**
      * Асинхронная инициализация и запуск графа
