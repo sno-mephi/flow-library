@@ -331,6 +331,39 @@ class FlowBuilderTest {
         assertFalse(testFlowBuilder.isRunning())
     }
 
+    @Test
+    fun `initAndRun() with wait=true`() {
+        class TestFetcher: GeneralFetcher() {
+            @InjectData
+            fun doFetch(str: String) = "done"
+        }
+
+        val testFetcher = TestFetcher()
+        val testFlowBuilder = FlowBuilder()
+
+        val flowContext = FlowContext()
+
+        fun FlowBuilder.buildFlow() {
+            sequence {
+                fetch(testFetcher)
+            }
+        }
+
+        testFlowBuilder.buildFlow()
+        testFlowBuilder.initAndRun(
+            flowContext,
+            Dispatchers.Default,
+            true,
+            "running",
+        )
+        assertFalse(testFlowBuilder.isRunning())
+        assertEquals(
+            "done",
+            flowContext.get<String>(),
+        )
+        assertFalse(testFlowBuilder.isRunning())
+    }
+
     /** Выполняет задачу и возвращает время выполнения**/
     private fun runWithTimer(
         action: () -> Any,
