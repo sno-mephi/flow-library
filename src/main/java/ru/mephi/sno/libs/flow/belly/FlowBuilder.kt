@@ -23,7 +23,8 @@ class FlowBuilder {
         NodeType.GROUP,
     )
 
-    fun isRunning() = flowRunsCount.get() != 0
+    fun flowRunsCount() = flowRunsCount.get()
+    fun isRunning() = flowRunsCount() != 0
 
     /**
      * Объединяет группу узлов
