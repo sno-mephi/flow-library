@@ -13,12 +13,16 @@ class FlowBuilder {
         private val log = LoggerFactory.getLogger(FlowBuilder::class.java)
     }
 
+    private var isRunning = false
+
     private var currentNode: FlowNode = FlowNode(
         GeneralFetcher(),
         mutableListOf(),
         mutableListOf(),
         NodeType.GROUP,
     )
+
+    fun isRunning() = isRunning
 
     /**
      * Объединяет группу узлов
@@ -70,26 +74,27 @@ class FlowBuilder {
 
     // Инициализация и запуск графа с ожиданием окончания выполнения
     fun initAndRun(
-        flowContext: FlowContext = FlowContext(),
+        flowContext: FlowContext = FlowContext(), // если не указан контекст, создается пустой по умолчанию
         dispatcher: CoroutineDispatcher = Dispatchers.Default,
         wait: Boolean = true,
         vararg objectsToReset: Any,
     ) {
         val scope = CoroutineScope(dispatcher)
-        val flowJob = scope.launch {
+        val flowJob = scope.async {
+            beforeRun()
             initAndRunAsync(
                 flowContext = flowContext,
                 dispatcher = dispatcher,
                 objectsToReset = objectsToReset,
             )
+            afterRun()
         }
         if (wait) {
-            scope.launch {
-                flowJob.join()
+            runBlocking {
+                flowJob.await()
             }
         }
     }
-
 
     /**
      * Асинхронная инициализация и запуск графа
@@ -160,5 +165,13 @@ class FlowBuilder {
             is GeneralFetcher -> objectToResolve.fetchMechanics(flowContext)
             is FlowNode -> if (objectToResolve.condition.invoke(flowContext)) run(objectToResolve, flowContext, dispatcher)
         }
+    }
+
+    protected fun beforeRun() {
+        isRunning = true
+    }
+
+    private fun afterRun() {
+        isRunning = false
     }
 }

@@ -5,6 +5,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Test
 import org.slf4j.LoggerFactory
 import ru.mephi.sno.libs.flow.fetcher.GeneralFetcher
@@ -274,14 +275,60 @@ class FlowBuilderTest {
         testFlowBuilder.initAndRun(
             flowContext,
             Dispatchers.Default,
-            false,
+            true,
             "",
         )
 
         assertEquals(
-            flowContext.get<String>(),
             "12345",
+            flowContext.get<String>(),
         )
+    }
+
+    @Test
+    fun `initAndRun() with wait=false`() {
+        class TestFetcher: GeneralFetcher() {
+            @InjectData
+            fun doFetch(str: String) = "done"
+        }
+
+        val testFetcher = TestFetcher()
+        val testFlowBuilder = FlowBuilder()
+
+        val flowContext = FlowContext()
+
+        fun FlowBuilder.buildFlow() {
+            sequence {
+                fetch(testFetcher)
+            }
+        }
+
+        testFlowBuilder.buildFlow()
+        testFlowBuilder.initAndRun(
+            flowContext,
+            Dispatchers.Default,
+            false,
+            "running",
+        )
+
+        runBlocking {
+            delay(200)
+        }
+        assertEquals(
+            "running",
+            flowContext.get<String>(),
+        )
+        assertTrue(testFlowBuilder.isRunning())
+
+        runBlocking {
+            delay(1000)
+        }
+
+        assertEquals(
+            "done",
+            flowContext.get<String>(),
+        )
+        assertFalse(testFlowBuilder.isRunning())
     }
 
     /** Выполняет задачу и возвращает время выполнения**/
