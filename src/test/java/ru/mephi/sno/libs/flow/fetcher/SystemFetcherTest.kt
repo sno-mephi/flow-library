@@ -1,20 +1,18 @@
 package ru.mephi.sno.libs.flow.fetcher
 
-import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import org.slf4j.LoggerFactory
 import ru.mephi.sno.libs.flow.belly.FlowBuilder
 import ru.mephi.sno.libs.flow.belly.FlowContext
 import ru.mephi.sno.libs.flow.belly.InjectData
 import kotlin.reflect.KFunction
 
-class GeneralFetcherTest {
+class SystemFetcherTest {
 
     @Test
     fun `test no InjectData annotation in Fetcher class`() {
-        class FetcherWithoutInjectAnnotation : GeneralFetcher()
+        class FetcherWithoutInjectAnnotation : SystemFetcher()
         val testFetcher = FetcherWithoutInjectAnnotation()
         val testFlowBuilder = FlowBuilder()
 
@@ -32,7 +30,7 @@ class GeneralFetcherTest {
 
     @Test
     fun `test too many InjectData methods in Fetcher class`() {
-        class FetcherWithManyInjectData : GeneralFetcher() {
+        class FetcherWithManyInjectData : SystemFetcher() {
             @InjectData
             fun doFetch1() {}
 
@@ -57,7 +55,7 @@ class GeneralFetcherTest {
 
     @Test
     fun someTest() {
-        open class StringInsertFetcher: GeneralFetcher() {
+        open class StringInsertFetcher: SystemFetcher() {
             override fun fetchCall(
                 flowContext: FlowContext,
                 doFetchMethod: KFunction<*>,

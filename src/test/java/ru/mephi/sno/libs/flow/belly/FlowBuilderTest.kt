@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Test
 import org.slf4j.LoggerFactory
-import ru.mephi.sno.libs.flow.fetcher.GeneralFetcher
+import ru.mephi.sno.libs.flow.fetcher.SystemFetcher
 
 class FlowBuilderTest {
 
@@ -20,7 +20,7 @@ class FlowBuilderTest {
     class TimeTestFetcher(
         private val marker: String = "test-fetcher",
         private val pauseTime: Long = 1000,
-    ) : GeneralFetcher() {
+    ) : SystemFetcher() {
         @InjectData
         fun doFetch() {
             runBlocking {
@@ -33,7 +33,7 @@ class FlowBuilderTest {
     // Кладет в контекст строку strToReturn
     class ReturnToContextTestFetcher(
         private val strToReturn: String,
-    ) : GeneralFetcher() {
+    ) : SystemFetcher() {
         @InjectData
         fun doFetch(): String {
             return strToReturn
@@ -41,7 +41,7 @@ class FlowBuilderTest {
     }
 
     // Извлекает из контекста строку
-    open class GetFromContextTestFetcher : GeneralFetcher() {
+    open class GetFromContextTestFetcher : SystemFetcher() {
         open lateinit var byContext: String
 
         @InjectData
@@ -243,7 +243,7 @@ class FlowBuilderTest {
     fun `the order of execution sequence() must be consistent`() {
         class TestFetcher(
             val num: Int,
-        ) : GeneralFetcher() {
+        ) : SystemFetcher() {
             @InjectData
             fun doFetch(str: String): String {
                 val newStrVal = str + "$num"
@@ -287,7 +287,7 @@ class FlowBuilderTest {
 
     @Test
     fun `initAndRun() with wait=false`() {
-        class TestFetcher: GeneralFetcher() {
+        class TestFetcher: SystemFetcher() {
             @InjectData
             fun doFetch() = "done"
         }
@@ -333,7 +333,7 @@ class FlowBuilderTest {
 
     @Test
     fun `initAndRun() with wait=true`() {
-        class TestFetcher: GeneralFetcher() {
+        class TestFetcher: SystemFetcher() {
             @InjectData
             fun doFetch() = "done"
         }
