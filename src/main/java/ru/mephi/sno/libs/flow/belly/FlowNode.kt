@@ -1,12 +1,12 @@
 package ru.mephi.sno.libs.flow.belly
 
-import ru.mephi.sno.libs.flow.fetcher.GeneralFetcher
+import ru.mephi.sno.libs.flow.fetcher.SystemFetcher
 
 /**
  * Представляет собой узел графа
  */
 class FlowNode(
-    val fetcher: GeneralFetcher?,
+    val fetcher: SystemFetcher?,
     val children: MutableList<FlowNode>,
     val parents: MutableList<FlowNode>,
     val nodeType: NodeType,
@@ -23,7 +23,7 @@ class FlowNode(
     }
 
     private fun addWGNode(
-        fetcher: GeneralFetcher? = null,
+        fetcher: SystemFetcher? = null,
         children: MutableList<FlowNode> = mutableListOf(),
         parents: MutableList<FlowNode> = mutableListOf(this),
         nodeType: NodeType,
@@ -40,10 +40,10 @@ class FlowNode(
         )
     }
 
-    internal fun addFetcher(generalFetcher: GeneralFetcher): FlowNode {
+    internal fun addFetcher(systemFetcher: SystemFetcher): FlowNode {
         return addChildrenNode(
             FlowNode(
-                fetcher = generalFetcher,
+                fetcher = systemFetcher,
                 children = mutableListOf(),
                 parents = mutableListOf(this),
                 nodeType = NodeType.FETCHER,

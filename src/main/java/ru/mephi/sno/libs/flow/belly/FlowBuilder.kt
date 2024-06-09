@@ -2,7 +2,7 @@ package ru.mephi.sno.libs.flow.belly
 
 import kotlinx.coroutines.*
 import org.slf4j.LoggerFactory
-import ru.mephi.sno.libs.flow.fetcher.GeneralFetcher
+import ru.mephi.sno.libs.flow.fetcher.SystemFetcher
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
@@ -17,7 +17,7 @@ class FlowBuilder {
     private val flowRunsCount: AtomicInteger = AtomicInteger(0)
 
     private var currentNode: FlowNode = FlowNode(
-        GeneralFetcher(),
+        SystemFetcher(),
         mutableListOf(),
         mutableListOf(),
         NodeType.GROUP,
@@ -75,7 +75,7 @@ class FlowBuilder {
     /**
      * Выполняет фетчер
      */
-    fun fetch(fetcherInstance: GeneralFetcher) {
+    fun fetch(fetcherInstance: SystemFetcher) {
         currentNode.addFetcher(fetcherInstance)
     }
 
@@ -171,7 +171,7 @@ class FlowBuilder {
         dispatcher: CoroutineDispatcher,
     ) {
         when (objectToResolve) {
-            is GeneralFetcher -> objectToResolve.fetchMechanics(flowContext)
+            is SystemFetcher -> objectToResolve.fetchMechanics(flowContext)
             is FlowNode -> if (objectToResolve.condition.invoke(flowContext)) run(objectToResolve, flowContext, dispatcher)
         }
     }
