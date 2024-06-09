@@ -54,14 +54,14 @@ class SystemFetcherTest {
     }
 
     @Test
-    fun someTest() {
+    fun `test override fetchCall()`() {
         open class StringInsertFetcher: SystemFetcher() {
             override fun fetchCall(
                 flowContext: FlowContext,
                 doFetchMethod: KFunction<*>,
                 params: MutableList<Any?>
             ): Any? {
-                flowContext.insertObject("test override general fetcher")
+                flowContext.insertObject("test override system fetcher")
                 return super.fetchCall(flowContext, doFetchMethod, params)
             }
         }
@@ -88,6 +88,6 @@ class SystemFetcherTest {
         
         val stringVal = flowContext.get<String?>()
 
-        assertEquals("test override general fetcher", stringVal)
+        assertEquals("test override system fetcher", stringVal)
     }
 }

@@ -20,13 +20,15 @@ open class GeneralFetcher: SystemFetcher() {
         params: MutableList<Any?>,
     ): Any? {
         this.flowContext = flowContext
-        val systemFields = this.flowContext.get<SystemFields>() ?: SystemFields()
+        val systemFields = this.flowContext.get<SystemFields>() ?: SystemFields().also { flowContext.insertObject(it) }
         if (systemFields.stopFlowInfo?.shouldStopFlowExecution() == true) {
             return null
         }
 
         return runCatching {
-            super.fetchCall(flowContext, doFetchMethod, params)
+            super.fetchCall(flowContext, doFetchMethod, params)?.takeIf {
+                flowContext.get<SystemFields>()?.stopFlowInfo?.shouldStopFlowExecution() != true
+            }
         }.onFailure { e ->
             onFailure(e)
         }.getOrNull()
@@ -35,14 +37,16 @@ open class GeneralFetcher: SystemFetcher() {
     protected open fun onFailure(e: Throwable) {
         log.error("ERROR: $e")
         log.debug(e.stackTraceToString())
-        stopFlowNextExecution()
+        stopFlow()
     }
 
     /**
      * Прерывает дальнейшее выполнение графа в рамках сессии (прогонки графа)
+     * После остановки текущий фетчер (и параллельные ему) уже ничего не возвращают во флоу,
+     * а последующие - не выполняются.
      */
     @Synchronized
-    protected open fun stopFlowNextExecution(
+    protected open fun stopFlow(
         stopFlowInfo: StopFlowInfo = StopFlowInfo()
     ) {
         val systemFields = flowContext.get<SystemFields>() ?: SystemFields()
