@@ -1,6 +1,7 @@
 package ru.mephi.sno.libs.flow.belly
 
 import org.slf4j.LoggerFactory
+import ru.mephi.sno.libs.flow.fetcher.SystemFields
 
 /**
  * Представляет контекст графа
@@ -9,7 +10,11 @@ data class FlowContext(
     private val contextMap: MutableMap<String, Any?> = mutableMapOf(),
 ) {
 
-    // TODO: настройка написания логов для этой либы?
+    // Доставляем в контекст флоу стандартные объекты
+    init {
+        insertObject(SystemFields())
+    }
+
     companion object {
         private val log = LoggerFactory.getLogger(FlowContext::class.java)
     }
