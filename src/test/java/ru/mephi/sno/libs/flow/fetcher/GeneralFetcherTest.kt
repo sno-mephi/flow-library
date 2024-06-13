@@ -2,6 +2,7 @@ package ru.mephi.sno.libs.flow.fetcher
 
 import kotlinx.coroutines.Dispatchers
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 import ru.mephi.sno.libs.flow.belly.FlowBuilder
 import ru.mephi.sno.libs.flow.belly.FlowContext
@@ -67,5 +68,30 @@ class GeneralFetcherTest {
                 byFetcher(),
             )
         }
+    }
+
+    @Test
+    fun `Throwable in flow on failure test`() {
+        class BadFetcher: GeneralFetcher() {
+            @InjectData
+            fun doFetch(): String {
+                throw RuntimeException("test")
+            }
+        }
+        val testFetcher = BadFetcher()
+        val testFlowBuilder = FlowBuilder()
+        val flowContext = FlowContext()
+        fun FlowBuilder.buildFlow() {
+            sequence {
+                fetch(testFetcher)
+            }
+        }
+        testFlowBuilder.buildFlow()
+        testFlowBuilder.initAndRun(
+            flowContext,
+            Dispatchers.Default,
+            true,
+        )
+        assertNotNull(flowContext.get<SystemFields>()?.exception)
     }
 }

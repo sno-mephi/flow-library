@@ -30,9 +30,17 @@ open class GeneralFetcher: SystemFetcher() {
                 flowContext.get<SystemFields>()?.stopFlowInfo?.shouldStopFlowExecution() != true
             }
         }.onFailure { e ->
-            flowContext.insertObject(e)
+            insetException(e)
             onFailure(e)
         }.getOrNull()
+    }
+
+    private fun insetException(e: Throwable) {
+        val systemFields = flowContext.get<SystemFields>() ?: SystemFields()
+        systemFields.apply {
+            this.exception = e
+            flowContext.insertObject(this)
+        }
     }
 
     protected open fun onFailure(e: Throwable) {
