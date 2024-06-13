@@ -30,6 +30,7 @@ open class GeneralFetcher: SystemFetcher() {
                 flowContext.get<SystemFields>()?.stopFlowInfo?.shouldStopFlowExecution() != true
             }
         }.onFailure { e ->
+            flowContext.insertObject(e)
             onFailure(e)
         }.getOrNull()
     }
