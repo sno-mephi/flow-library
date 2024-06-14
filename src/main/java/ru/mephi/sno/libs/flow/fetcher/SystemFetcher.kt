@@ -20,13 +20,7 @@ import kotlin.reflect.jvm.javaType
 open class SystemFetcher {
 
     private val log = LoggerFactory.getLogger(this::class.java)
-
-    /**
-     * Метод, который запускает метод помеченный как @InjectData,
-     * внедряя в него нужные бины из контекста
-     */
-    fun fetchMechanics(flowContext: FlowContext) {
-        // получаем все методы с аннотацией @InjectData
+    private val doFetchMethod: KFunction<*> by lazy {
         val methods = this::class.declaredMemberFunctions.filter { it.hasAnnotation<InjectData>() }
 
         if (methods.isEmpty()) {
@@ -37,7 +31,15 @@ open class SystemFetcher {
             throw NoSuchMethodException("too many methods with annotation InjectData in ${this::class}")
         }
 
-        val doFetchMethod = methods.first()
+        methods.first()
+    }
+
+    private val paramTypes: List<Class<*>> by lazy {
+        doFetchMethod.parameters.map { it.type.javaType as Class<*> }
+            .let { it.subList(1, it.size) }
+    }
+
+    fun fetchMechanics(flowContext: FlowContext) {
         val params = getParamsFromFlow(doFetchMethod, flowContext)
 
         val fetchResult = fetchCall(flowContext, doFetchMethod, params)
@@ -48,28 +50,21 @@ open class SystemFetcher {
         method: KFunction<*>,
         flowContext: FlowContext,
     ): MutableList<Any?> {
-        val paramTypes = method.parameters
-            .map { it.type.javaType as Class<*> }
         val nonCloneableObjects = mutableListOf<Any>()
         val params = mutableListOf<Any?>()
 
-        paramTypes
-            .let { it.subList(1, it.size) }
-            .forEach { paramType ->
-                val injectedObject = flowContext.getBeanByType(paramType)
-                // если мы отметили тип как изменяемый (@Mutable), то позволяем его менять во время выполнения
-                if (paramType.kotlin.hasAnnotation<Mutable>()) {
-                    params.add(injectedObject)
-                } else {
-                    params.add(
-                        tryToClone(injectedObject),
-                    )
+        for (paramType in paramTypes) {
+            val injectedObject = flowContext.getBeanByType(paramType)
+            if (paramType.kotlin.hasAnnotation<Mutable>()) {
+                params.add(injectedObject)
+            } else {
+                params.add(tryToClone(injectedObject))
 
-                    if (injectedObject != null && !isCloneable(injectedObject)) {
-                        nonCloneableObjects.add(injectedObject)
-                    }
+                if (injectedObject != null && !isCloneable(injectedObject)) {
+                    nonCloneableObjects.add(injectedObject)
                 }
             }
+        }
 
         if (nonCloneableObjects.isNotEmpty()) {
             log.warn(
@@ -107,7 +102,7 @@ open class SystemFetcher {
                 val copy = obj::class.memberFunctions.firstOrNull { it.name == "copy" }
                 val instanceParam = copy?.instanceParameter
                 instanceParam?.let {
-                    copy.callBy(mapOf(it to obj)) as T
+                    copy.callBy(mapOf(instanceParam to obj)) as T
                 }
             }
             obj is Serializable -> SerializationUtils.clone(obj) as T
