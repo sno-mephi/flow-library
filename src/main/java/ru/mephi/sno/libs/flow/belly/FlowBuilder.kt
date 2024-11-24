@@ -132,7 +132,7 @@ class FlowBuilder {
         flowContext: FlowContext,
         dispatcher: CoroutineDispatcher,
     ) {
-        withContext(dispatcher) {
+        withContext(dispatcher + FlowContextElement(flowContext)) {
             val toRun = mutableListOf<Any>()
             val currentNodeType = node.nodeType
             node.children.forEach { children ->

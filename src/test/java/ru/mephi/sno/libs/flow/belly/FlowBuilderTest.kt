@@ -289,7 +289,12 @@ class FlowBuilderTest {
     fun `initAndRun() with wait=false`() {
         class TestFetcher: SystemFetcher() {
             @InjectData
-            fun doFetch() = "done"
+            fun doFetch(): String {
+                runBlocking {
+                    delay(500)
+                }
+                return "done"
+            }
         }
 
         val testFetcher = TestFetcher()
