@@ -6,7 +6,9 @@ import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 import ru.mephi.sno.libs.flow.belly.FlowBuilder
 import ru.mephi.sno.libs.flow.belly.FlowContext
+import ru.mephi.sno.libs.flow.belly.FlowContextElement
 import ru.mephi.sno.libs.flow.belly.InjectData
+import kotlin.coroutines.coroutineContext
 
 class GeneralFetcherTest {
 
@@ -19,7 +21,7 @@ class GeneralFetcherTest {
 
         class TestFetcherB: GeneralFetcher() {
             @InjectData
-            fun doFetch(): String {
+            suspend fun doFetch(): String {
                 if (1 > 0) stopFlow(
                     StopFlowInfo(
                         message = "test",
@@ -93,5 +95,33 @@ class GeneralFetcherTest {
             true,
         )
         assertNotNull(flowContext.get<SystemFields>()?.exception)
+    }
+
+    @Test
+    fun `getting FlowContext from CoroutineContext test`() {
+        class TestFetcher: GeneralFetcher() {
+            @InjectData
+            suspend fun doFetch(): String {
+                val flowContext = coroutineContext[FlowContextElement]?.flowContext!!
+                return flowContext.get<String>() + "_success"
+            }
+        }
+        val testFetcher = TestFetcher()
+        val flowContext = FlowContext().apply {
+            insertObject("12345")
+        }
+        val testFlowBuilder = FlowBuilder()
+        fun FlowBuilder.buildFlow() {
+            sequence {
+                fetch(testFetcher)
+            }
+        }
+        testFlowBuilder.buildFlow()
+        testFlowBuilder.initAndRun(
+            flowContext,
+            Dispatchers.Default,
+            true,
+        )
+        assertEquals(flowContext.get<String>(), "12345_success")
     }
 }

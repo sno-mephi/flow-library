@@ -12,15 +12,13 @@ import kotlin.reflect.KFunction
  */
 open class GeneralFetcher: SystemFetcher() {
     protected val log: Logger = LoggerFactory.getLogger(this::class.java)
-    protected lateinit var flowContext: FlowContext
 
-    override fun fetchCall(
+    override suspend fun fetchCall(
         flowContext: FlowContext,
         doFetchMethod: KFunction<*>,
         params: MutableList<Any?>,
     ): Any? {
-        this.flowContext = flowContext
-        val systemFields = this.flowContext.get<SystemFields>() ?: SystemFields().also { flowContext.insertObject(it) }
+        val systemFields = getFlowContext().get<SystemFields>() ?: SystemFields().also { flowContext.insertObject(it) }
         if (systemFields.stopFlowInfo?.shouldStopFlowExecution() == true) {
             return null
         }
@@ -35,15 +33,15 @@ open class GeneralFetcher: SystemFetcher() {
         }.getOrNull()
     }
 
-    private fun insetException(e: Throwable) {
-        val systemFields = flowContext.get<SystemFields>() ?: SystemFields()
+    private suspend fun insetException(e: Throwable) {
+        val systemFields = getFlowContext().get<SystemFields>() ?: SystemFields()
         systemFields.apply {
             this.exception = e
-            flowContext.insertObject(this)
+            getFlowContext().insertObject(this)
         }
     }
 
-    protected open fun onFailure(e: Throwable) {
+    protected open suspend fun onFailure(e: Throwable) {
         log.error("ERROR: $e")
         log.debug(e.stackTraceToString())
         stopFlow()
@@ -54,11 +52,10 @@ open class GeneralFetcher: SystemFetcher() {
      * После остановки текущий фетчер (и параллельные ему) уже ничего не возвращают во флоу,
      * а последующие - не выполняются.
      */
-    @Synchronized
-    protected open fun stopFlow(
+    protected open suspend fun stopFlow(
         stopFlowInfo: StopFlowInfo = StopFlowInfo()
     ) {
-        val systemFields = flowContext.get<SystemFields>() ?: SystemFields()
+        val systemFields = getFlowContext().get<SystemFields>() ?: SystemFields()
         systemFields.apply {
             this.stopFlowInfo = StopFlowInfo(
                 origin = stopFlowInfo,
@@ -66,7 +63,7 @@ open class GeneralFetcher: SystemFetcher() {
                 fromFetcher = this@GeneralFetcher::class.java,
                 shouldStopFlowExecution = true,
             )
-            flowContext.insertObject(this)
+            getFlowContext().insertObject(this)
         }
     }
 }

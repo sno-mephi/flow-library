@@ -3,14 +3,13 @@ package ru.mephi.sno.libs.flow.fetcher
 import org.apache.commons.lang3.SerializationUtils
 import org.slf4j.LoggerFactory
 import ru.mephi.sno.libs.flow.belly.FlowContext
+import ru.mephi.sno.libs.flow.belly.FlowContextElement
 import ru.mephi.sno.libs.flow.belly.InjectData
 import ru.mephi.sno.libs.flow.belly.Mutable
 import java.io.Serializable
+import kotlin.coroutines.coroutineContext
 import kotlin.reflect.KFunction
-import kotlin.reflect.full.declaredMemberFunctions
-import kotlin.reflect.full.hasAnnotation
-import kotlin.reflect.full.instanceParameter
-import kotlin.reflect.full.memberFunctions
+import kotlin.reflect.full.*
 import kotlin.reflect.jvm.javaType
 
 /**
@@ -39,7 +38,7 @@ open class SystemFetcher {
             .let { it.subList(1, it.size) }
     }
 
-    fun fetchMechanics(flowContext: FlowContext) {
+    suspend fun fetchMechanics(flowContext: FlowContext) {
         val params = getParamsFromFlow(doFetchMethod, flowContext)
 
         val fetchResult = fetchCall(flowContext, doFetchMethod, params)
@@ -81,12 +80,16 @@ open class SystemFetcher {
      * Метод для запуска фетчера
      * Возвращает объект, который должен вернуться в контекст
      */
-    open fun fetchCall(
+    open suspend fun fetchCall(
         flowContext: FlowContext,
         doFetchMethod: KFunction<*>,
         params: MutableList<Any?>,
     ): Any? {
-        return doFetchMethod.call(this, *params.toTypedArray())
+        return if (doFetchMethod.isSuspend) {
+            doFetchMethod.callSuspend(this, *params.toTypedArray())
+        } else {
+            doFetchMethod.call(this, *params.toTypedArray())
+        }
     }
 
     /**
@@ -111,4 +114,7 @@ open class SystemFetcher {
     }
 
     private fun isCloneable(obj: Any) = obj is Serializable || obj::class.isData
+
+    suspend fun getFlowContext() =
+        coroutineContext[FlowContextElement]?.flowContext!!
 }

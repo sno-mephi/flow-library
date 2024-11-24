@@ -56,7 +56,7 @@ class SystemFetcherTest {
     @Test
     fun `test override fetchCall()`() {
         open class StringInsertFetcher: SystemFetcher() {
-            override fun fetchCall(
+            override suspend fun fetchCall(
                 flowContext: FlowContext,
                 doFetchMethod: KFunction<*>,
                 params: MutableList<Any?>
