@@ -45,7 +45,7 @@ open class SystemFetcher {
         fetchResult?.let { flowContext.insertObject(it) }
     }
 
-    private fun getParamsFromFlow(
+    protected fun getParamsFromFlow(
         method: KFunction<*>,
         flowContext: FlowContext,
     ): MutableList<Any?> {
