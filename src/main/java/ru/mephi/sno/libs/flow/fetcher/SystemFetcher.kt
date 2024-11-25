@@ -45,14 +45,19 @@ open class SystemFetcher {
         fetchResult?.let { flowContext.insertObject(it) }
     }
 
-    protected fun getParamsFromFlow(
+    private fun getParamsFromFlow(
         method: KFunction<*>,
         flowContext: FlowContext,
     ): MutableList<Any?> {
         val nonCloneableObjects = mutableListOf<Any>()
         val params = mutableListOf<Any?>()
 
-        for (paramType in paramTypes) {
+        val currentMethodParamTypes =
+            method.parameters
+                .map { it.type.javaType as Class<*> }
+                .let { it.subList(1, it.size) }
+
+        for (paramType in currentMethodParamTypes) {
             val injectedObject = flowContext.getBeanByType(paramType)
             if (paramType.kotlin.hasAnnotation<Mutable>()) {
                 params.add(injectedObject)
