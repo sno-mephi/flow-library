@@ -1,6 +1,6 @@
 package ru.mephi.sno.libs.flow.fetcher
 
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
@@ -123,5 +123,47 @@ class GeneralFetcherTest {
             true,
         )
         assertEquals(flowContext.get<String>(), "12345_success")
+    }
+
+    @Test
+    fun `parallel getting FlowContext from CoroutineContext test`() {
+        class TestFetcher : GeneralFetcher() {
+            @InjectData
+            suspend fun doFetch(): String {
+                val flowContext = coroutineContext[FlowContextElement]?.flowContext!!
+                return flowContext.get<String>() + "_success"
+            }
+        }
+
+        val count = 1000
+        val testFetcher = TestFetcher()
+        val testFlowBuilder = FlowBuilder()
+        fun FlowBuilder.buildFlow() {
+            sequence {
+                fetch(testFetcher)
+            }
+        }
+        testFlowBuilder.buildFlow()
+
+        val scope = CoroutineScope(Dispatchers.Default)
+
+        val contexts = List(count) { index ->
+            FlowContext().apply {
+                insertObject("context_$index")
+            }
+        }
+        val jobs = List(count) { index ->
+            scope.async {
+                testFlowBuilder.initAndRun(
+                    contexts[index],
+                    Dispatchers.IO,
+                    true,
+                )
+            }
+        }
+        runBlocking { jobs.awaitAll() }
+
+        for(i in 0..<count)
+            assertEquals("context_${i}_success", contexts[i].get<String>())
     }
 }

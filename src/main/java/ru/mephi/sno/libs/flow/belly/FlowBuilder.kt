@@ -108,7 +108,7 @@ class FlowBuilder {
     /**
      * Асинхронная инициализация и запуск графа
      */
-    suspend fun initAndRunAsync(
+    private suspend fun initAndRunAsync(
         flowContext: FlowContext = FlowContext(),
         dispatcher: CoroutineDispatcher = Dispatchers.Default,
         vararg objectsToReset: Any,
